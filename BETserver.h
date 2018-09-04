@@ -1,8 +1,7 @@
-/* Filename: bettserver.h
+/* Filename: BETserver.h
  * Author: Ahmed Tourk
  * Date: 04.09.2018
- * Description: Server Header for BetServer
- //TODO: Add a more descriptive documentation
+ * Description:
  */
 
 /*
@@ -28,5 +27,5 @@
 #define BETSERVER_NUM_MAX       (0xE0FFFFAA)
 
 /*
- * EXPORTED FUNCTIONS
+ * APIs
  */

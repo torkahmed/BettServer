@@ -1,6 +1,25 @@
+/* Filename: BETserver.h
+ * Author: Ahmed Tourk
+ * Date: 04.09.2018
+ * Description:
+ */
+
+/*
+ * INCLUDES
+ */
 #include "SOCKETwrapper.h"
 
+/*
+ * MACROS
+ */
 
+/*
+ * PRIVATE FUNCTIONS
+ */
+
+/*
+ * PUBLIC FUNCTIONS
+ */
 PUBLIC int32_t SW_CreateServer(int32_t serverPort, int32_t maxPendingConnections)
 {
 	int32_t serverSocket = INVALID_SOCKET;
@@ -35,4 +54,11 @@ PUBLIC int32_t SW_CreateServer(int32_t serverPort, int32_t maxPendingConnections
 
   fprintf(stdout, "[I] Server Socket Created (%d) on Port (%d)\n", serverSocket, serverPort);
 	return serverSocket;
+}
+
+PUBLIC void SW_ShutdownServer(int32_t socketDescriptor)
+{
+    fprintf(stdout, "[I] Closing Socket %d\n", socketDescriptor);
+    shutdown(socketDescriptor, SHUT_RDWR);
+    close(socketDescriptor);
 }
