@@ -69,7 +69,7 @@ PUBLIC int32_t SW_CreateServer(int32_t serverPort, int32_t maxPendingConnections
     return INVALID_SOCKET;
   }
 
-  fprintf(stdout, "[I] Server Socket Created (%d) on Port (%d)\n", serverSocket, serverPort);
+  fprintf(stdout, "[I] Server Socket Created %d on Port %d\n", serverSocket, serverPort);
 	return serverSocket;
 }
 
