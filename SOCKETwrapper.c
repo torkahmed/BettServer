@@ -1,4 +1,4 @@
-/* Filename: BETserver.h
+/* Filename: SOCKETwrapper.c
  * Author: Ahmed Tourk
  * Date: 04.09.2018
  * Description:
@@ -7,19 +7,36 @@
 /*
  * INCLUDES
  */
+
+#include <unistd.h>
+
 #include "SOCKETwrapper.h"
+
 
 /*
  * MACROS
  */
 
+
 /*
- * PRIVATE FUNCTIONS
+ * GLOBAL VARIABLES
  */
+
+
+/*
+ * PRIVATE FUNCTION DECLARATION
+ */
+
+
+/*
+ * PRIVATE FUNCTION IMPLEMENTATION
+ */
+
 
 /*
  * PUBLIC FUNCTIONS
  */
+
 PUBLIC int32_t SW_CreateServer(int32_t serverPort, int32_t maxPendingConnections)
 {
 	int32_t serverSocket = INVALID_SOCKET;

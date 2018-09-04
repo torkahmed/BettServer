@@ -2,7 +2,6 @@
  * Author: Ahmed Tourk
  * Date: 04.09.2018
  * Description: Server Implementation for BetServer
- //TODO: Add a more descriptive documentation
  */
 
 /*
@@ -26,13 +25,13 @@
 int32_t s32ServerSocket;
 bool isServerRunning = true;
 
-
 /*
  * PRIVATE FUNCTION DECLARATION
  */
 void handleInterruptSignal(int32_t signalNumber);
 void createClientThread(int32_t clientSocket, int32_t clientID);
 bool runServer(uint16_t serverPort);
+
 /*
  * PRIVATE FUNCTION IMPLEMENTATION
  */
@@ -60,8 +59,10 @@ bool runServer(uint16_t serverPort)
     int32_t clientSockLength;
     int32_t clientID;
     
+    /* Monitor Interrupt/Termination Signals to Close Socket */
     signal(SIGINT, handleInterruptSignal);
     signal(SIGTERM, handleInterruptSignal);
+    
     s32ServerSocket = SW_CreateServer(serverPort, BETSERVER_NUM_CLIENTS);
     
     if (s32ServerSocket == INVALID_SOCKET)
