@@ -12,14 +12,12 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include "BETstd.h"
+
 
 /*
  * MACROS
  */
-#define LOCAL static
-#define PUBLIC
-#define UNUSED(x) (void)(x)
-
 #define BETSERVER_PORT          (2222)
 
 #define BETSERVER_NUM_CLIENTS   (40U)

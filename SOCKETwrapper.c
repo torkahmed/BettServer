@@ -10,6 +10,7 @@
 
 #include <unistd.h>
 
+#include "BETserver.h"
 #include "SOCKETwrapper.h"
 
 
