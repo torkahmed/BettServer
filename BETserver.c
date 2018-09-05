@@ -20,6 +20,7 @@
 /*
  * MACROS
  */
+//TODO: Research the correct stack size to set for a client thread
 #define THREAD_STACKSIZE      (64 * 1024)
 /*
  * GLOBAL VARIABLES
@@ -70,7 +71,7 @@ void *handleBetClient(void *data)
 {
     int32_t clientID = (int32_t) data;
     //TODO: Implement
-    fprintf(stdout, "Thread Started for Client with ID %d", clientID);
+    fprintf(stdout, "[I] Thread Started for Client with ID %d", clientID);
     
     return NULL;
 }

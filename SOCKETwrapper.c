@@ -80,3 +80,35 @@ PUBLIC void SW_ShutdownServer(int32_t socketDescriptor)
     shutdown(socketDescriptor, SHUT_RDWR);
     close(socketDescriptor);
 }
+
+PUBLIC bool SW_ConnectToServer(int32_t *socketDescriptor, uint32_t ip, uint16_t port)
+{
+    struct sockaddr_in sockAddrIn;
+    int32_t clientSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if(clientSocket < 0)
+    {
+        fprintf(stderr, "[E] Could not Create Client Socket\n");
+        return false;
+    }
+
+    fprintf(stdout, "[I] Client Socket Created %d\n", clientSocket);
+
+
+    sockAddrIn.sin_family = AF_INET;
+    sockAddrIn.sin_port = port;
+    sockAddrIn.sin_addr.s_addr = ip;
+
+    if (connect(clientSocket, (const struct sockaddr*) &sockAddrIn, sizeof(sockAddrIn)) != 0)
+    {
+        fprintf(stderr, "[E] Could not Connect to Server Socket, Closing Client Socket\n");
+        close(clientSocket);
+        //TODO: Add Errno Traces
+        return false;
+    }
+
+    fprintf(stdout, "[I] Client Connected to Server\n");
+    *socketDescriptor = clientSocket;
+    return true;
+
+}
