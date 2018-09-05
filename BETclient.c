@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 
 #include "SOCKETwrapper.h"
@@ -62,5 +63,6 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
 
 int main(int argc, char const *argv[])
 {
-
+    clientConnectToServer("127.0.0.1", 2222);
+    return 0;
 }

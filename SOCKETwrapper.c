@@ -96,7 +96,7 @@ PUBLIC bool SW_ConnectToServer(int32_t *socketDescriptor, uint32_t ip, uint16_t 
 
 
     sockAddrIn.sin_family = AF_INET;
-    sockAddrIn.sin_port = port;
+    sockAddrIn.sin_port = htons(port);
     sockAddrIn.sin_addr.s_addr = ip;
 
     if (connect(clientSocket, (const struct sockaddr*) &sockAddrIn, sizeof(sockAddrIn)) != 0)
