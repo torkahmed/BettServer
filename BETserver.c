@@ -24,7 +24,12 @@
 //TODO: Check why stdout isnt flushed directly
 //TODO: Research the correct stack size to set for a client thread
 #define THREAD_STACKSIZE      (64 * 1024)
+#ifdef RAND_MAX
+  /* Suppress Redefinition Warning */
+  #undef RAND_MAX
+#endif
 #define RAND_MAX              (0xAA)
+
 /*
  * GLOBAL VARIABLES
  */
