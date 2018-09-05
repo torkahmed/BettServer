@@ -71,12 +71,14 @@ PUBLIC int32_t SW_CreateServer(int32_t serverPort, int32_t maxPendingConnections
   }
 
   fprintf(stdout, "[I] Server Socket Created %d on Port %d\n", serverSocket, serverPort);
+  fflush(stdout);
 	return serverSocket;
 }
 
 PUBLIC void SW_ShutdownServer(int32_t socketDescriptor)
 {
     fprintf(stdout, "[I] Closing Socket %d\n", socketDescriptor);
+    fflush(stdout);
     shutdown(socketDescriptor, SHUT_RDWR);
     close(socketDescriptor);
 }
@@ -93,6 +95,7 @@ PUBLIC bool SW_ConnectToServer(int32_t *socketDescriptor, uint32_t ip, uint16_t 
     }
 
     fprintf(stdout, "[I] Client Socket Created %d\n", clientSocket);
+    fflush(stdout);
 
 
     sockAddrIn.sin_family = AF_INET;
@@ -108,6 +111,7 @@ PUBLIC bool SW_ConnectToServer(int32_t *socketDescriptor, uint32_t ip, uint16_t 
     }
 
     fprintf(stdout, "[I] Client Connected to Server\n");
+    fflush(stdout);
     *socketDescriptor = clientSocket;
     return true;
 
