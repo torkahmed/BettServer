@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <sys/socket.h>
+#include <signal.h>
 #include <pthread.h>
 
 #include "SOCKETwrapper.h"
