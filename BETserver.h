@@ -18,11 +18,6 @@
 /*
  * MACROS
  */
-#define BETSERVER_PORT          (2222)
-
-#define BETSERVER_NUM_CLIENTS   (40U)
-#define BETSERVER_NUM_MIN       (0xE0FFFF00)
-#define BETSERVER_NUM_MAX       (0xE0FFFFAA)
 
 /*
  * APIs

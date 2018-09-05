@@ -18,6 +18,13 @@
 #define PUBLIC
 #define UNUSED(x) (void)(x)
 
+#define BETSERVER_PORT          (2222)
+
+#define BETSERVER_NUM_CLIENTS   (10U)
+#define BETSERVER_NUM_MIN       (0xE0FFFF00)
+#define BETSERVER_NUM_MAX       (0xE0FFFFAA)
+
+
 /*
  * APIs
  */

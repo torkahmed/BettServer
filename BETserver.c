@@ -15,6 +15,7 @@
 #include <pthread.h>
 
 #include "SOCKETwrapper.h"
+#include "BETserver_db.h"
 #include "BETserver.h"
 
 /*
@@ -23,6 +24,7 @@
 //TODO: Check why stdout isnt flushed directly
 //TODO: Research the correct stack size to set for a client thread
 #define THREAD_STACKSIZE      (64 * 1024)
+#define RAND_MAX              (0xAA)
 /*
  * GLOBAL VARIABLES
  */
@@ -48,8 +50,31 @@ void handleInterruptSignal(int32_t signalNumber)
 
 int32_t generateClientID(int32_t clientSocket, int32_t clientSockLength)
 {
-    //TODO: Implement
-    return 0;
+    //TODO: Move to DB Component
+    uint32_t u32ClientID = BETSERVER_NUM_MIN;
+    uint8_t u8Rand = rand();
+    tenuDBErrorCode tDBStatus;
+
+    u32ClientID |= (u8Rand & 0x000000FF);
+
+    tDBStatus = DB_AddClientID(u32ClientID);
+
+    switch (tDBStatus) {
+        case DB_OK:
+            fprintf(stderr, "[I] Client registered to Server!\n");
+            break;
+        case DB_DUPLICATE:
+            fprintf(stderr, "[E] Client ID Duplicated, try again!\n");
+            u32ClientID = DB_DUPLICATE;
+            break;
+        case DB_FULL:
+            fprintf(stderr, "[E] Server DB Full!\n");
+            u32ClientID = DB_FULL;
+        default:
+            break;
+    }
+
+    return u32ClientID;
 }
 
 void createClientThread(int32_t clientSocket, int32_t clientID)
@@ -70,9 +95,9 @@ void createClientThread(int32_t clientSocket, int32_t clientID)
 }
 void *handleBetClient(void *data)
 {
-    int32_t clientID = (int32_t) data;
+    int32_t clientID = (uint32_t) data;
     //TODO: Implement
-    fprintf(stdout, "[I] Thread Started for Client with ID %d\n", clientID);
+    fprintf(stdout, "[I] Thread Started for Client with ID %x\n", clientID);
     fflush(stdout);
     
     return NULL;
@@ -109,7 +134,17 @@ bool runServer(uint16_t serverPort)
         if (0 <= clientSocket)
         {
             clientID = generateClientID(clientSocket, clientSockLength);
-            createClientThread(clientSocket, clientID);
+            //TODO: Move inside DB
+            while (clientID == DB_DUPLICATE)
+            {
+                fprintf(stderr,"[E] Duplicate Client ID, retrying\n");
+                clientID = clientID = generateClientID(clientSocket, clientSockLength);
+            }
+
+            if(clientID != DB_FULL)
+            {
+                createClientThread(clientSocket, clientID);
+            }
         }
     }
     
