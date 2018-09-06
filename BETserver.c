@@ -202,7 +202,7 @@ bool runServer(uint16_t serverPort)
             while (clientID == DB_DUPLICATE)
             {
                 fprintf(stderr,"[E] Duplicate Client ID, retrying\n");
-                clientID = clientID = generateClientID(clientSocket, clientSockLength);
+                clientID = generateClientID(clientSocket, clientSockLength);
             }
 
             if(clientID != DB_FULL)

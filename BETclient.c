@@ -9,6 +9,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -18,10 +19,6 @@
 /*
  * MACROS
  */
-#ifdef RAND_MAX
-  /* Suppress Redefinition Warning */
-  #undef RAND_MAX
-#endif
 
 /*
  * GLOBAL VARIABLES
@@ -31,17 +28,17 @@
 /*
  * PRIVATE FUNCTION DECLARATION
  */
-uint32_t getRandomNumber(uint32_t min, uint32_t max);
+uint32_t getRandomNumber(uint32_t min, uint32_t max, uint16_t clientID);
 bool clientConnectToServer(char *serverIP, int16_t serverPort);
 
 /*
  * PRIVATE FUNCTION IMPLEMENTATION
  */
-uint32_t getRandomNumber(uint32_t min, uint32_t max)
+uint32_t getRandomNumber(uint32_t min, uint32_t max, uint16_t clientID)
 {
     //TODO: USE RNG used in ID
-    double factor = rand() % 100;
-    factor /= 100;
+    double factor = clientID & 0x00FF;
+    factor /= 0xFF;
     fprintf(stderr, "[D] Random Factor: %f\n", factor);
     return (min + ((max-min) * factor));
 }
@@ -84,10 +81,11 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
     fprintf(stderr, "[I] MY ID: %d\n", messageHeader.u16ClientID);
     fprintf(stderr, "[I] LB: %x, UB: %x\n", messageAccept.u32BetLowerBounds, messageAccept.u32BetUpperBounds);
 
-    messageBet.u32BettingNumber = getRandomNumber(messageAccept.u32BetLowerBounds, messageAccept.u32BetUpperBounds);
+    messageBet.u32BettingNumber = getRandomNumber(messageAccept.u32BetLowerBounds, messageAccept.u32BetUpperBounds, messageHeader.u16ClientID);
 
     fprintf(stderr, "[I] Betting Number: %x\n", messageBet.u32BettingNumber);
-
+    
+    return true;
 }
 
 /*
