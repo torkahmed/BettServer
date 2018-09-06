@@ -21,7 +21,7 @@
 /*
  * GLOBAL VARIABLES
  */
-uint32_t clientIDList[BETSERVER_NUM_CLIENTS];
+uint16_t clientIDList[BETSERVER_NUM_CLIENTS];
 uint32_t numConnectedClients;
 
 /*
@@ -36,7 +36,7 @@ uint32_t numConnectedClients;
 /*
  * PUBLIC FUNCTIONS
  */
-PUBLIC tenuDBErrorCode DB_AddClientID(uint32_t clientID)
+PUBLIC tenuDBErrorCode DB_AddClientID(uint16_t clientID)
 {
     int i;
     /* 1. Check that ID List isn't full */

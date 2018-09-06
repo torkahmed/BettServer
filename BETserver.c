@@ -28,7 +28,7 @@
   /* Suppress Redefinition Warning */
   #undef RAND_MAX
 #endif
-#define RAND_MAX              (0xAA)
+#define RAND_MAX              (BETSERVER_NUM_CLIENTS - 1U)
 
 /*
  * GLOBAL VARIABLES
@@ -40,7 +40,7 @@ bool isServerRunning = true;
  * PRIVATE FUNCTION DECLARATION
  */
 void handleInterruptSignal(int32_t signalNumber);
-void createClientThread(uint32_t clientSocket, uint32_t clientID);
+void createClientThread(uint32_t clientSocket, uint16_t clientID);
 void *handleBetClient(void *data);
 bool runServer(uint16_t serverPort);
 
@@ -56,13 +56,11 @@ void handleInterruptSignal(int32_t signalNumber)
 int32_t generateClientID(int32_t clientSocket, int32_t clientSockLength)
 {
     //TODO: Move to DB Component
-    uint32_t u32ClientID = BETSERVER_NUM_MIN;
-    uint8_t u8Rand = rand();
+    uint16_t u16ClientID;
     tenuDBErrorCode tDBStatus;
 
-    u32ClientID |= (u8Rand & 0x000000FF);
-
-    tDBStatus = DB_AddClientID(u32ClientID);
+    u16ClientID = rand();
+    tDBStatus = DB_AddClientID(u16ClientID);
 
     switch (tDBStatus) {
         case DB_OK:
@@ -70,19 +68,19 @@ int32_t generateClientID(int32_t clientSocket, int32_t clientSockLength)
             break;
         case DB_DUPLICATE:
             fprintf(stderr, "[E] Client ID Duplicated, try again!\n");
-            u32ClientID = DB_DUPLICATE;
+            u16ClientID = DB_DUPLICATE;
             break;
         case DB_FULL:
             fprintf(stderr, "[E] Server DB Full!\n");
-            u32ClientID = DB_FULL;
+            u16ClientID = DB_FULL;
         default:
             break;
     }
 
-    return u32ClientID;
+    return u16ClientID;
 }
 
-void createClientThread(uint32_t clientSocket, uint32_t clientID)
+void createClientThread(uint32_t clientSocket, uint16_t clientID)
 {
     /*    u64PassedArgument
      *  AAAAAAAA    BBBBBBBB
@@ -97,7 +95,7 @@ void createClientThread(uint32_t clientSocket, uint32_t clientID)
 
     u64PassedArgument = (uint64_t) clientID;
     u64PassedArgument <<= 32;
-    u64PassedArgument &= 0xFFFFFFFF00000000;
+    u64PassedArgument &= 0x0000FFFF00000000;
     u64PassedArgument |= (0x0000FFFF & clientSocket);
 
     threadCreationStatus = pthread_create(&clientThread, &threadAttributes, handleBetClient, (void *) u64PassedArgument);
@@ -116,7 +114,7 @@ void *handleBetClient(void *data)
     uint32_t clientSocket = (uint32_t) (0x00000000FFFFFFFF & (uint64_t) data);
     uint32_t clientID = (uint32_t)    ((0xFFFFFFFF00000000 & (uint64_t) data) >> 32);
 
-    fprintf(stdout, "[I] Thread Started for Client on Socket %d with ID %x\n", clientSocket, clientID);
+    fprintf(stdout, "[I] Thread Started for Client on Socket %d with ID %d\n", clientSocket, clientID);
     fflush(stdout);
 
     /* BETSERVER_OPEN */
@@ -134,7 +132,9 @@ void *handleBetClient(void *data)
         return NULL;
     }
 
-    fprintf(stderr, "[I] Received Open Message from Client with ID %x\n", clientID);
+    fprintf(stderr, "[I] Received Open Message from Client with ID %d\n", clientID);
+
+
 
     return NULL;
 }

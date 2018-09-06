@@ -21,7 +21,7 @@
 
 #define BETSERVER_PORT          (2222)
 
-#define BETSERVER_NUM_CLIENTS   (10U)
+#define BETSERVER_NUM_CLIENTS   (64500U)
 #define BETSERVER_NUM_MIN       (0xE0FFFF00)
 #define BETSERVER_NUM_MAX       (0xE0FFFFAA)
 
@@ -43,7 +43,7 @@ typedef struct sBetServerMessageHeader
     uint8_t u8Version;
     uint8_t u8Length;
     uint8_t u8Type;
-    uint32_t u32ClientID;
+    uint16_t u16ClientID;
 }mBetServerMessageHeader;
 
 

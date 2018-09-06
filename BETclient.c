@@ -18,7 +18,11 @@
 /*
  * MACROS
  */
-
+#ifdef RAND_MAX
+  /* Suppress Redefinition Warning */
+  #undef RAND_MAX
+#endif
+#define RAND_MAX              (0xAA)
 
 /*
  * GLOBAL VARIABLES
@@ -57,7 +61,7 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
     messageHeader.u8Version = PROTOCOL_VERSION;
     messageHeader.u8Length = sizeof(messageHeader);
     messageHeader.u8Type = BETSERVER_OPEN;
-    messageHeader.u32ClientID = 0;
+    messageHeader.u16ClientID = 0;
     nrBytesSent = send(socketDescriptor, &messageHeader, sizeof(messageHeader), 0);
     if(nrBytesSent != -1)
     {
