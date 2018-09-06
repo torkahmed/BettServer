@@ -54,9 +54,9 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
     }
 
 //TODO Connected to Server, send request
-    messageHeader.u8Version = 1;
-    messageHeader.u8Length = 2;
-    messageHeader.u8Type = 1;
+    messageHeader.u8Version = PROTOCOL_VERSION;
+    messageHeader.u8Length = sizeof(messageHeader);
+    messageHeader.u8Type = BETSERVER_OPEN;
     messageHeader.u32ClientID = 0;
     nrBytesSent = send(socketDescriptor, &messageHeader, sizeof(messageHeader), 0);
     if(nrBytesSent != -1)

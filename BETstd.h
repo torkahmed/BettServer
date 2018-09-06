@@ -26,6 +26,14 @@
 #define BETSERVER_NUM_MAX       (0xE0FFFFAA)
 
 
+#define PROTOCOL_VERSION          (0x1)
+/* MESSAGE TYPES */
+#define BETSERVER_OPEN            (0x1)
+#define BETSERVER_ACCEPT          (0x2)
+#define BETSERVER_BET             (0x3)
+#define BETSERVER_RESULT          (0x4)
+
+
 /*
  * MESSAGE TYPEDEFs
  */

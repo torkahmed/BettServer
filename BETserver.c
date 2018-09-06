@@ -118,19 +118,23 @@ void *handleBetClient(void *data)
 
     fprintf(stdout, "[I] Thread Started for Client on Socket %d with ID %x\n", clientSocket, clientID);
     fflush(stdout);
-    
-//TODO:    SW_RecvMessage();
-//    nrBytesRcvd = recv(clientSocket, openMessage, sizeof(openMessage), 0);
-//    fprintf(stderr, "[I] Received %d Bytes\n", nrBytesRcvd);
-//    fprintf(stderr, "[I] Message: %s\n", openMessage);
 
+    /* BETSERVER_OPEN */
     nrBytesRcvd = recv(clientSocket, &messageHeader, sizeof(openMessage), 0);
-    fprintf(stderr, "[I] Received %d Bytes\n", nrBytesRcvd);
-    fprintf(stderr, "[I] Header Version: %d\n", messageHeader.u8Version);
-    fprintf(stderr, "[I] Header Length: %d\n", messageHeader.u8Length);
-    fprintf(stderr, "[I] Header Type: %d\n", messageHeader.u8Type);
-    fprintf(stderr, "[I] Header Client ID: %d\n", messageHeader.u32ClientID);
 
+    if(messageHeader.u8Version != PROTOCOL_VERSION)
+    {
+        fprintf(stderr, "[E] Wrong Protocol Version, Disconnecting...\n");
+        return NULL;
+    }
+
+    if(messageHeader.u8Type != BETSERVER_OPEN)
+    {
+        fprintf(stderr, "[E] Wrong Message Type\n");
+        return NULL;
+    }
+
+    fprintf(stderr, "[I] Received Open Message from Client with ID %x\n", clientID);
 
     return NULL;
 }
