@@ -129,6 +129,7 @@ bool runServer(uint16_t serverPort)
     /* Monitor Interrupt/Termination Signals to Close Socket */
     signal(SIGINT, handleInterruptSignal);
     signal(SIGTERM, handleInterruptSignal);
+    signal(SIGSEGV, handleInterruptSignal);
     
     s32ServerSocket = SW_CreateServer(serverPort, BETSERVER_NUM_CLIENTS);
     
