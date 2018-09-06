@@ -42,6 +42,7 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
     uint32_t serverIP = 0;
     int32_t socketDescriptor;
     mBetServerMessageHeader messageHeader;
+    mBetServerMessageAccept messageAccept;
     int8_t nrBytesSent = 0;
 
     /* Step 1: Validate IP Address Entry */
@@ -67,6 +68,11 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
     {
         fprintf(stderr, "[I] Message sent to server\n");
     }
+
+    recv(socketDescriptor, &messageHeader, sizeof(messageHeader), 0);
+    recv(socketDescriptor, &messageAccept, sizeof(messageAccept), 0);
+    fprintf(stderr, "[I] MY ID: %d\n", messageHeader.u16ClientID);
+    fprintf(stderr, "[I] LB: %x, UB: %x\n", messageAccept.u32BetLowerBounds, messageAccept.u32BetUpperBounds);
 
 }
 

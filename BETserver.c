@@ -109,8 +109,10 @@ void *handleBetClient(void *data)
 {
     char openMessage[6000];
     mBetServerMessageHeader messageHeader;
+    mBetServerMessageAccept messageAccept;
 
     uint32_t nrBytesRcvd= 0;
+    uint32_t nrBytesSent = 0;
     uint32_t clientSocket = (uint32_t) (0x00000000FFFFFFFF & (uint64_t) data);
     uint32_t clientID = (uint32_t)    ((0xFFFFFFFF00000000 & (uint64_t) data) >> 32);
 
@@ -118,7 +120,7 @@ void *handleBetClient(void *data)
     fflush(stdout);
 
     /* BETSERVER_OPEN */
-    nrBytesRcvd = recv(clientSocket, &messageHeader, sizeof(openMessage), 0);
+    nrBytesRcvd = recv(clientSocket, &messageHeader, sizeof(messageHeader), 0);
 
     if(messageHeader.u8Version != PROTOCOL_VERSION)
     {
@@ -133,6 +135,27 @@ void *handleBetClient(void *data)
     }
 
     fprintf(stderr, "[I] Received Open Message from Client with ID %d\n", clientID);
+
+    //TODO: Continue here
+
+    /* BETSERVER_ACCEPT */
+    messageHeader.u8Type = BETSERVER_ACCEPT;
+    messageHeader.u8Length = sizeof(mBetServerMessageHeader) + sizeof(mBetServerMessageAccept);
+    messageHeader.u16ClientID = clientID;
+
+    nrBytesSent = send(clientSocket, &messageHeader, sizeof(messageHeader), 0);
+    if(nrBytesSent == sizeof(messageHeader))
+    {
+        messageAccept.u32BetLowerBounds = BETSERVER_NUM_MIN;
+        messageAccept.u32BetUpperBounds = BETSERVER_NUM_MAX;
+
+        nrBytesSent = send(clientSocket, &messageAccept, sizeof(messageAccept), 0);
+        if(nrBytesSent == sizeof(messageAccept))
+        {
+            fprintf(stderr, "[I] Accept Sent Successfully\n");
+        }
+    }
+
 
 
 

@@ -46,6 +46,22 @@ typedef struct sBetServerMessageHeader
     uint16_t u16ClientID;
 }mBetServerMessageHeader;
 
+typedef struct sBetServerMessageAccept
+{
+    uint32_t u32BetLowerBounds;
+    uint32_t u32BetUpperBounds;
+}mBetServerMessageAccept;
+
+typedef struct sBetServerMessageBet
+{
+    uint32_t u32BettingNumber;
+}mBetServerMessageBet;
+
+typedef struct sBetServerMessageResult
+{
+    uint8_t u8Status;
+    uint32_t u32WinningNumber;
+}mBetServerMessageResult;
 
 
 #endif /* BETSTD_H */
