@@ -40,7 +40,7 @@ bool isServerRunning = true;
  * PRIVATE FUNCTION DECLARATION
  */
 void handleInterruptSignal(int32_t signalNumber);
-void createClientThread(int32_t clientSocket, int32_t clientID);
+void createClientThread(uint32_t clientSocket, uint32_t clientID);
 void *handleBetClient(void *data);
 bool runServer(uint16_t serverPort);
 
@@ -82,16 +82,25 @@ int32_t generateClientID(int32_t clientSocket, int32_t clientSockLength)
     return u32ClientID;
 }
 
-void createClientThread(int32_t clientSocket, int32_t clientID)
+void createClientThread(uint32_t clientSocket, uint32_t clientID)
 {
-    //TODO: Implement
+    /*    u64PassedArgument
+     *  AAAAAAAA    BBBBBBBB
+     *  clientID  clientSocket
+     */
+    uint64_t u64PassedArgument = 0;
     int32_t threadCreationStatus;
     pthread_t clientThread;
     pthread_attr_t threadAttributes;
     pthread_attr_init(&threadAttributes);
     pthread_attr_setstacksize(&threadAttributes, THREAD_STACKSIZE);
 
-    threadCreationStatus = pthread_create(&clientThread, &threadAttributes, handleBetClient, (void *) clientID);
+    u64PassedArgument = (uint64_t) clientID;
+    u64PassedArgument <<= 32;
+    u64PassedArgument &= 0xFFFFFFFF00000000;
+    u64PassedArgument |= (0x0000FFFF & clientSocket);
+
+    threadCreationStatus = pthread_create(&clientThread, &threadAttributes, handleBetClient, (void *) u64PassedArgument);
     
     if (0 != threadCreationStatus)
     {
@@ -100,11 +109,14 @@ void createClientThread(int32_t clientSocket, int32_t clientID)
 }
 void *handleBetClient(void *data)
 {
-    int32_t clientID = (uint32_t) data;
-    //TODO: Implement
-    fprintf(stdout, "[I] Thread Started for Client with ID %x\n", clientID);
+    uint32_t clientSocket = (uint32_t) (0x00000000FFFFFFFF & (uint64_t) data);
+    uint32_t clientID = (uint32_t)    ((0xFFFFFFFF00000000 & (uint64_t) data) >> 32);
+
+    fprintf(stdout, "[I] Thread Started for Client on Socket %d with ID %x\n", clientSocket, clientID);
     fflush(stdout);
     
+//TODO:    SW_RecvMessage();
+
     return NULL;
 }
 bool runServer(uint16_t serverPort)

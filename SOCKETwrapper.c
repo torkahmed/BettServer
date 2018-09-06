@@ -116,3 +116,24 @@ PUBLIC bool SW_ConnectToServer(int32_t *socketDescriptor, uint32_t ip, uint16_t 
     return true;
 
 }
+
+PUBLIC bool SW_RecvMessage(int32_t peerSocket, char *recvBuffer, size_t numBytesToRecv)
+{
+    int32_t recvBufferIndex = 0;
+    int32_t bytesRead = 0;
+
+    while(numBytesToRecv > 0)
+    {
+        fprintf(stderr, "[I] Receiving Data from client socket\n");
+        bytesRead = recv(peerSocket, &recvBuffer[recvBufferIndex], numBytesToRecv, 0);
+        if(bytesRead <= 0)
+        {
+            fprintf(stderr, "[E] Peer did not send any data\n");
+            return false;
+        }
+
+        numBytesToRecv -= bytesRead;
+        recvBufferIndex += bytesRead;
+    }
+    return true;
+}
