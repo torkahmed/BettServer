@@ -9,6 +9,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <sys/socket.h>
 #include <signal.h>
@@ -110,6 +111,7 @@ void *handleBetClient(void *data)
     char openMessage[6000];
     mBetServerMessageHeader messageHeader;
     mBetServerMessageAccept messageAccept;
+    mBetServerMessageBet messageBet;
 
     uint32_t nrBytesRcvd= 0;
     uint32_t nrBytesSent = 0;
@@ -155,6 +157,8 @@ void *handleBetClient(void *data)
             fprintf(stderr, "[I] Accept Sent Successfully\n");
         }
     }
+
+
 
 
 
