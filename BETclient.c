@@ -37,6 +37,8 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
 {
     uint32_t serverIP = 0;
     int32_t socketDescriptor;
+    mBetServerMessageHeader messageHeader;
+    int8_t nrBytesSent = 0;
 
     /* Step 1: Validate IP Address Entry */
     if (inet_pton(AF_INET, serverHumanRIP, &serverIP) != 1)
@@ -52,8 +54,15 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
     }
 
 //TODO Connected to Server, send request
-
-
+    messageHeader.u8Version = 1;
+    messageHeader.u8Length = 2;
+    messageHeader.u8Type = 1;
+    messageHeader.u32ClientID = 0;
+    nrBytesSent = send(socketDescriptor, &messageHeader, sizeof(messageHeader), 0);
+    if(nrBytesSent != -1)
+    {
+        fprintf(stderr, "[I] Message sent to server\n");
+    }
 
 }
 

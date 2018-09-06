@@ -3,7 +3,8 @@
  * Date: 04.09.2018
  * Description: BET Component Standard Definitions
  */
-
+#ifndef BETSTD_H
+#define BETSTD_H
 /*
  * INCLUDES
  */
@@ -26,5 +27,17 @@
 
 
 /*
- * APIs
+ * MESSAGE TYPEDEFs
  */
+
+typedef struct sBetServerMessageHeader
+{
+    uint8_t u8Version;
+    uint8_t u8Length;
+    uint8_t u8Type;
+    uint32_t u32ClientID;
+}mBetServerMessageHeader;
+
+
+
+#endif /* BETSTD_H */

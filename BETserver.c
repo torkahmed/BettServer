@@ -109,6 +109,10 @@ void createClientThread(uint32_t clientSocket, uint32_t clientID)
 }
 void *handleBetClient(void *data)
 {
+    char openMessage[6000];
+    mBetServerMessageHeader messageHeader;
+
+    uint32_t nrBytesRcvd= 0;
     uint32_t clientSocket = (uint32_t) (0x00000000FFFFFFFF & (uint64_t) data);
     uint32_t clientID = (uint32_t)    ((0xFFFFFFFF00000000 & (uint64_t) data) >> 32);
 
@@ -116,6 +120,17 @@ void *handleBetClient(void *data)
     fflush(stdout);
     
 //TODO:    SW_RecvMessage();
+//    nrBytesRcvd = recv(clientSocket, openMessage, sizeof(openMessage), 0);
+//    fprintf(stderr, "[I] Received %d Bytes\n", nrBytesRcvd);
+//    fprintf(stderr, "[I] Message: %s\n", openMessage);
+
+    nrBytesRcvd = recv(clientSocket, &messageHeader, sizeof(openMessage), 0);
+    fprintf(stderr, "[I] Received %d Bytes\n", nrBytesRcvd);
+    fprintf(stderr, "[I] Header Version: %d\n", messageHeader.u8Version);
+    fprintf(stderr, "[I] Header Length: %d\n", messageHeader.u8Length);
+    fprintf(stderr, "[I] Header Type: %d\n", messageHeader.u8Type);
+    fprintf(stderr, "[I] Header Client ID: %d\n", messageHeader.u32ClientID);
+
 
     return NULL;
 }
