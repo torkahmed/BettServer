@@ -135,8 +135,6 @@ void *handleBetClient(void *data)
     mBetServerMessageBet messageBet;
     mBetServerMessageResult messageResult;
 
-    char *testString;
-
     uint32_t nrBytesRcvd= 0;
     uint32_t nrBytesSent = 0;
     uint32_t clientSocket = (uint32_t) (0x00000000FFFFFFFF & (uint64_t) data);
@@ -201,6 +199,7 @@ void *handleBetClient(void *data)
 
     messageHeader.u8Length = sizeof(messageHeader) + sizeof(messageResult);
     messageHeader.u8Type = BETSERVER_RESULT;
+    //TODO: Potential Multi-threading Issue here.
     messageResult.u32WinningNumber = DB_SelectWinningNumber();
 
     if(messageResult.u32WinningNumber == messageBet.u32BettingNumber)
