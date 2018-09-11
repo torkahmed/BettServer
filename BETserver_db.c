@@ -78,6 +78,11 @@ PUBLIC bool DB_AddBettingNumber(uint16_t clientID, uint32_t bettingNumber)
     return false;
 }
 
+PUBLIC uint32_t DB_SelectWinningNumber(void)
+{
+    return clientBettingNumbers[0];
+}
+
 PUBLIC void DB_ClearIDList(void)
 {
     uint32_t i;

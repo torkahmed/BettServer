@@ -52,6 +52,7 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
     mBetServerMessageHeader messageHeader;
     mBetServerMessageAccept messageAccept;
     mBetServerMessageBet messageBet;
+    mBetServerMessageResult messageResult;
 
     /* Step 1: Validate IP Address Entry */
     if (inet_pton(AF_INET, serverHumanRIP, &serverIP) != 1)
@@ -97,6 +98,18 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
         {
             fprintf(stderr, "[I] Bet Message Sent Successfully!\n");
         }
+    }
+
+    recv(socketDescriptor, &messageHeader, sizeof(messageHeader), 0);
+    recv(socketDescriptor, &messageResult, sizeof(messageResult), 0);
+
+    if(messageResult.u8Status)
+    {
+        fprintf(stderr, "I WON!!!!\n");
+    }
+    else
+    {
+        fprintf(stderr, "I LOSE! :( \n");
     }
 
     

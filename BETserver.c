@@ -36,6 +36,7 @@
  */
 int32_t s32ServerSocket;
 bool isServerRunning = true;
+bool timeElapsed = false;
 
 /*
  * PRIVATE FUNCTION DECLARATION
@@ -108,10 +109,12 @@ void createClientThread(uint32_t clientSocket, uint16_t clientID)
 }
 void *handleBetClient(void *data)
 {
-    char openMessage[6000];
     mBetServerMessageHeader messageHeader;
     mBetServerMessageAccept messageAccept;
     mBetServerMessageBet messageBet;
+    mBetServerMessageResult messageResult;
+
+    char *testString;
 
     uint32_t nrBytesRcvd= 0;
     uint32_t nrBytesSent = 0;
@@ -137,8 +140,6 @@ void *handleBetClient(void *data)
     }
 
     fprintf(stderr, "[I] Received Open Message from Client with ID %d\n", clientID);
-
-    //TODO: Continue here
 
     /* BETSERVER_ACCEPT */
     messageHeader.u8Type = BETSERVER_ACCEPT;
@@ -170,6 +171,35 @@ void *handleBetClient(void *data)
         fprintf(stderr, "[E] Could not find Client ID in Database!\n");
     }
 
+//    while(!timeElapsed)
+//    {
+//        /* Wait in thread till timer is elapsed */
+//    }
+
+    fscanf(stdin, "Timer Elapsed? %s\n", testString);
+
+    messageHeader.u8Length = sizeof(messageHeader) + sizeof(messageResult);
+    messageHeader.u8Type = BETSERVER_RESULT;
+    messageResult.u32WinningNumber = DB_SelectWinningNumber();
+
+    if(messageResult.u32WinningNumber == messageBet.u32BettingNumber)
+    {
+        messageResult.u8Status = true;
+    }
+    else
+    {
+        messageResult.u8Status = false;
+    }
+
+    nrBytesSent = send(clientSocket, &messageHeader, sizeof(messageHeader), 0);
+        if(nrBytesSent == sizeof(messageHeader))
+        {
+            nrBytesSent = send(clientSocket, &messageResult, sizeof(messageResult), 0);
+            if(nrBytesSent == sizeof(messageResult))
+            {
+                fprintf(stderr, "[I] Result Sent Successfully\n");
+            }
+        }
 
     return NULL;
 }
