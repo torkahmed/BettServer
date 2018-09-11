@@ -22,6 +22,7 @@
  * GLOBAL VARIABLES
  */
 uint16_t clientIDList[BETSERVER_NUM_CLIENTS];
+uint32_t clientBettingNumbers[BETSERVER_NUM_CLIENTS];
 uint32_t numConnectedClients;
 
 /*
@@ -36,7 +37,7 @@ uint32_t numConnectedClients;
 /*
  * PUBLIC FUNCTIONS
  */
-PUBLIC tenuDBErrorCode DB_AddClientID(uint16_t clientID)
+PUBLIC tenuDBErrorCode DB_AppendClientID(uint16_t clientID)
 {
     int i;
     /* 1. Check that ID List isn't full */
@@ -63,6 +64,20 @@ PUBLIC tenuDBErrorCode DB_AddClientID(uint16_t clientID)
 
 }
 
+PUBLIC bool DB_AddBettingNumber(uint16_t clientID, uint32_t bettingNumber)
+{
+    uint8_t i;
+    for (i = 0; i<numConnectedClients; ++i)
+    {
+        if(clientIDList[i] == clientID)
+        {
+            clientBettingNumbers[i] = bettingNumber;
+            return true;
+        }
+    }
+    return false;
+}
+
 PUBLIC void DB_ClearIDList(void)
 {
     uint32_t i;
@@ -70,6 +85,7 @@ PUBLIC void DB_ClearIDList(void)
     for(i = 0; i < numConnectedClients; ++i)
     {
         clientIDList[i] = 0;
+        clientBettingNumbers[i] = 0;
     }
 
     numConnectedClients = 0;

@@ -61,7 +61,7 @@ int32_t generateClientID(int32_t clientSocket, int32_t clientSockLength)
     tenuDBErrorCode tDBStatus;
 
     u16ClientID = rand();
-    tDBStatus = DB_AddClientID(u16ClientID);
+    tDBStatus = DB_AppendClientID(u16ClientID);
 
     switch (tDBStatus) {
         case DB_OK:
@@ -161,6 +161,14 @@ void *handleBetClient(void *data)
     recv(clientSocket, &messageHeader, sizeof(messageHeader), 0);
     recv(clientSocket, &messageBet, sizeof(messageBet), 0);
     fprintf(stderr, "[I] Betting Number for Client ID %d is %x\n", messageHeader.u16ClientID, messageBet.u32BettingNumber);
+    if(DB_AddBettingNumber(messageHeader.u16ClientID, messageBet.u32BettingNumber))
+    {
+        fprintf(stderr, "[I] Betting Number Registered to Client ID Successfully!\n");
+    }
+    else
+    {
+        fprintf(stderr, "[E] Could not find Client ID in Database!\n");
+    }
 
 
     return NULL;

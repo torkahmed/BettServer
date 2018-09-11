@@ -22,5 +22,6 @@ typedef enum
 /*
  * APIs
  */
-PUBLIC tenuDBErrorCode DB_AddClientID(uint16_t clientID);
+PUBLIC tenuDBErrorCode DB_AppendClientID(uint16_t clientID);
+PUBLIC bool DB_AddBettingNumber(uint16_t clientID, uint32_t bettingNumber);
 PUBLIC void DB_ClearIDList(void);
