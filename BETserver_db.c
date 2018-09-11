@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "BETserver_db.h"
 
@@ -80,7 +81,11 @@ PUBLIC bool DB_AddBettingNumber(uint16_t clientID, uint32_t bettingNumber)
 
 PUBLIC uint32_t DB_SelectWinningNumber(void)
 {
-    return clientBettingNumbers[0];
+
+    /* Generate a random number between 0 and numConnected Clients */
+    int u8Index = rand() % numConnectedClients;
+    fprintf(stderr, "[D] Random Winning Index: %d\n", u8Index);
+    return clientBettingNumbers[u8Index];
 }
 
 PUBLIC void DB_ClearIDList(void)
