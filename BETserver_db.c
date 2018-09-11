@@ -82,7 +82,7 @@ PUBLIC bool DB_AddBettingNumber(uint16_t clientID, uint32_t bettingNumber)
     return false;
 }
 
-PUBLIC uint32_t DB_SelectWinningNumber(void)
+PUBLIC void DB_SelectWinningNumber(void)
 {
     if(!winnerDetermined)
     {
@@ -92,6 +92,11 @@ PUBLIC uint32_t DB_SelectWinningNumber(void)
         u32WinningNumber = clientBettingNumbers[u8Index];
         winnerDetermined = true;
     }
+    return;
+}
+
+PUBLIC uint32_t DB_GetWinner(void)
+{
     return u32WinningNumber;
 }
 

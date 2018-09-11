@@ -1,3 +1,11 @@
+/*
+ TODO List:
+ 
+ 1. Verbose Option to Enable/Disable extended [I] Traces
+ 2. Call Reset Function
+ 
+ */
+
 /* Filename: BETserver.c
  * Author: Ahmed Tourk
  * Date: 04.09.2018
@@ -39,6 +47,7 @@ LOCAL int32_t s32ServerSocket;
 LOCAL bool isServerRunning = true;
 LOCAL bool bTimerStarted = false;
 LOCAL bool bTimeElapsed = false;
+LOCAL pthread_mutex_t tProtectionMutex;
 
 /*
  * PRIVATE FUNCTION DECLARATION
@@ -158,7 +167,7 @@ void *handleBetClient(void *data)
         return NULL;
     }
 
-    fprintf(stderr, "[I] Received Open Message from Client with ID %d\n", clientID);
+//    fprintf(stderr, "[I] Received Open Message from Client with ID %d\n", clientID);
 
     /* BETSERVER_ACCEPT */
     messageHeader.u8Type = BETSERVER_ACCEPT;
@@ -174,16 +183,16 @@ void *handleBetClient(void *data)
         nrBytesSent = send(clientSocket, &messageAccept, sizeof(messageAccept), 0);
         if(nrBytesSent == sizeof(messageAccept))
         {
-            fprintf(stderr, "[I] Accept Sent Successfully\n");
+//            fprintf(stderr, "[I] Accept Sent Successfully\n");
         }
     }
 
     recv(clientSocket, &messageHeader, sizeof(messageHeader), 0);
     recv(clientSocket, &messageBet, sizeof(messageBet), 0);
-    fprintf(stderr, "[I] Betting Number for Client ID %d is %x\n", messageHeader.u16ClientID, messageBet.u32BettingNumber);
+//    fprintf(stderr, "[I] Betting Number for Client ID %d is %x\n", messageHeader.u16ClientID, messageBet.u32BettingNumber);
     if(DB_AddBettingNumber(messageHeader.u16ClientID, messageBet.u32BettingNumber))
     {
-        fprintf(stderr, "[I] Betting Number Registered to Client ID Successfully!\n");
+//        fprintf(stderr, "[I] Betting Number Registered to Client ID Successfully!\n");
     }
     else
     {
@@ -199,8 +208,16 @@ void *handleBetClient(void *data)
 
     messageHeader.u8Length = sizeof(messageHeader) + sizeof(messageResult);
     messageHeader.u8Type = BETSERVER_RESULT;
-    //TODO: Potential Multi-threading Issue here. - Check pthread_mutex_lock
-    messageResult.u32WinningNumber = DB_SelectWinningNumber();
+    
+    // Potential Multi-threading Issue here. - Check pthread_mutex_lock
+    // TODO: Multithreading issue fixed by mutex. Test well.
+    if(0 == pthread_mutex_lock(&tProtectionMutex))
+    {
+        DB_SelectWinningNumber();
+        pthread_mutex_unlock(&tProtectionMutex);
+    }
+    
+    messageResult.u32WinningNumber = DB_GetWinner();
 
     if(messageResult.u32WinningNumber == messageBet.u32BettingNumber)
     {
@@ -217,7 +234,7 @@ void *handleBetClient(void *data)
             nrBytesSent = send(clientSocket, &messageResult, sizeof(messageResult), 0);
             if(nrBytesSent == sizeof(messageResult))
             {
-                fprintf(stderr, "[I] Result Sent Successfully\n");
+//                fprintf(stderr, "[I] Result Sent Successfully\n");
             }
         }
 
@@ -302,6 +319,7 @@ bool runServer(uint16_t serverPort)
  */
 int main(int argc, char const *argv[])
 {
+    pthread_mutex_init(&tProtectionMutex, NULL);
     runServer(BETSERVER_PORT);
     return 0;
 }
