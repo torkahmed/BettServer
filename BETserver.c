@@ -158,9 +158,9 @@ void *handleBetClient(void *data)
         }
     }
 
-
-
-
+    recv(clientSocket, &messageHeader, sizeof(messageHeader), 0);
+    recv(clientSocket, &messageBet, sizeof(messageBet), 0);
+    fprintf(stderr, "[I] Betting Number for Client ID %d is %x\n", messageHeader.u16ClientID, messageBet.u32BettingNumber);
 
 
     return NULL;
