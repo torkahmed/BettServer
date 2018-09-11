@@ -199,7 +199,7 @@ void *handleBetClient(void *data)
 
     messageHeader.u8Length = sizeof(messageHeader) + sizeof(messageResult);
     messageHeader.u8Type = BETSERVER_RESULT;
-    //TODO: Potential Multi-threading Issue here.
+    //TODO: Potential Multi-threading Issue here. - Check pthread_mutex_lock
     messageResult.u32WinningNumber = DB_SelectWinningNumber();
 
     if(messageResult.u32WinningNumber == messageBet.u32BettingNumber)
