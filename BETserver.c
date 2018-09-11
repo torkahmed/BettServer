@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include <signal.h>
 #include <pthread.h>
+#include <unistd.h>
 
 #include "SOCKETwrapper.h"
 #include "BETserver_db.h"
@@ -34,16 +35,19 @@
 /*
  * GLOBAL VARIABLES
  */
-int32_t s32ServerSocket;
-bool isServerRunning = true;
-bool timeElapsed = false;
+LOCAL int32_t s32ServerSocket;
+LOCAL bool isServerRunning = true;
+LOCAL bool bTimerStarted = false;
+LOCAL bool bTimeElapsed = false;
 
 /*
  * PRIVATE FUNCTION DECLARATION
  */
 void handleInterruptSignal(int32_t signalNumber);
 void createClientThread(uint32_t clientSocket, uint16_t clientID);
+void createTimerThread(void);
 void *handleBetClient(void *data);
+void *startBettingInstance(void *data);
 bool runServer(uint16_t serverPort);
 
 /*
@@ -107,6 +111,23 @@ void createClientThread(uint32_t clientSocket, uint16_t clientID)
         fprintf(stderr, "[E] Could not Create Client Thread, Error Code: %d\n", threadCreationStatus);
     }
 }
+
+void createTimerThread(void)
+{
+    int32_t threadCreationStatus;
+    pthread_t timerThread;
+    pthread_attr_t threadAttributes;
+    pthread_attr_init(&threadAttributes);
+    pthread_attr_setstacksize(&threadAttributes, THREAD_STACKSIZE);
+
+    threadCreationStatus = pthread_create(&timerThread, &threadAttributes, startBettingInstance, (void *) NULL);
+
+    if (0 != threadCreationStatus)
+    {
+        fprintf(stderr, "[E] Could not Create Timer Thread, Error Code: %d\n", threadCreationStatus);
+    }
+}
+
 void *handleBetClient(void *data)
 {
     mBetServerMessageHeader messageHeader;
@@ -171,12 +192,12 @@ void *handleBetClient(void *data)
         fprintf(stderr, "[E] Could not find Client ID in Database!\n");
     }
 
-//    while(!timeElapsed)
-//    {
-//        /* Wait in thread till timer is elapsed */
-//    }
+    while(!bTimeElapsed)
+    {
+        /* Wait in thread till timer is elapsed */
+    }
 
-    fscanf(stdin, "Timer Elapsed? %s\n", testString);
+//    fscanf(stdin, "Timer Elapsed? %s\n", testString);
 
     messageHeader.u8Length = sizeof(messageHeader) + sizeof(messageResult);
     messageHeader.u8Type = BETSERVER_RESULT;
@@ -203,6 +224,24 @@ void *handleBetClient(void *data)
 
     return NULL;
 }
+
+void *startBettingInstance(void *data)
+{
+    /* Wait for 15 seconds */
+    fprintf(stdout, "[I] Betting Instance Started \n");
+    sleep(15U);
+    bTimeElapsed = true;
+    return NULL;
+}
+
+void resetBettingRound(void)
+{
+    //TODO: Check how/when to call this function
+    DB_ClearIDList();
+    bTimeElapsed = false;
+    bTimerStarted = false;
+}
+
 bool runServer(uint16_t serverPort)
 {
     struct sockaddr_in clientSockAddr;
@@ -235,6 +274,12 @@ bool runServer(uint16_t serverPort)
         
         if (0 <= clientSocket)
         {
+            if(!bTimerStarted)
+            {
+                createTimerThread();
+                bTimerStarted = true;
+            }
+
             clientID = generateClientID(clientSocket, clientSockLength);
             //TODO: Move inside DB
             while (clientID == DB_DUPLICATE)

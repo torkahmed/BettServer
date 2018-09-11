@@ -59,7 +59,7 @@ PUBLIC int32_t SW_CreateServer(int32_t serverPort, int32_t maxPendingConnections
 
   if ( bind(serverSocket, (struct sockaddr *) &serverSockAddr, sizeof(serverSockAddr)) < 0 )
   {
-		fprintf(stderr, "[E] Could Not Bind Server Socket\n");
+		fprintf(stderr, "[E] Could Not Bind to Server Socket\n");
 		return INVALID_SOCKET;
   }
 
