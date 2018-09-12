@@ -2,7 +2,8 @@
  TODO List:
  
  1. Verbose Option to Enable/Disable extended [I] Traces
- 2. Call Reset Function
+ 2. Proper Protection
+ 3. Protocol Violation Detection
  
  */
 
@@ -33,20 +34,23 @@
  */
 //TODO: Check why stdout isnt flushed directly
 //TODO: Research the correct stack size to set for a client thread
+
+/* 64KB of Stack Size */
 #define THREAD_STACKSIZE      (64 * 1024)
-#ifdef RAND_MAX
-  /* Suppress Redefinition Warning */
-  #undef RAND_MAX
-#endif
-#define RAND_MAX              (BETSERVER_NUM_CLIENTS - 1U)
 
 /*
  * GLOBAL VARIABLES
  */
+
+/* Server Socket */
 LOCAL int32_t s32ServerSocket;
+/* Flag to indicate if Server is currently running */
 LOCAL bool isServerRunning = true;
+/* Flag to indicate whether a betting run is already started, read/set by main thread, reset by timer thread */
 LOCAL bool bTimerStarted = false;
+/* Flag to indicate whether the betting run should end. Written by Timer Thread, Read by Client Threads */
 LOCAL bool bTimeElapsed = false;
+/* Mutex to protect multiple clients accessing DB API simultaneously to calculate winner. i.e first one calculates winner, the rest get the result */
 LOCAL pthread_mutex_t tProtectionMutex;
 
 /*
@@ -63,39 +67,21 @@ bool runServer(uint16_t serverPort);
 /*
  * PRIVATE FUNCTION IMPLEMENTATION
  */
+
+/*
+ Function: handleInterruptSignal
+ Description: Shutdown the server in case a signal is triggered (e.g User Interrupt)
+ */
 void handleInterruptSignal(int32_t signalNumber)
 {
     isServerRunning = false;
     SW_ShutdownServer(s32ServerSocket);
 }
 
-int32_t generateClientID(int32_t clientSocket, int32_t clientSockLength)
-{
-    //TODO: Move to DB Component
-    uint16_t u16ClientID;
-    tenuDBErrorCode tDBStatus;
-
-    u16ClientID = rand();
-    tDBStatus = DB_AppendClientID(u16ClientID);
-
-    switch (tDBStatus) {
-        case DB_OK:
-            fprintf(stderr, "[I] Client registered to Server!\n");
-            break;
-        case DB_DUPLICATE:
-            fprintf(stderr, "[E] Client ID Duplicated, try again!\n");
-            u16ClientID = DB_DUPLICATE;
-            break;
-        case DB_FULL:
-            fprintf(stderr, "[E] Server DB Full!\n");
-            u16ClientID = DB_FULL;
-        default:
-            break;
-    }
-
-    return u16ClientID;
-}
-
+/*
+ Function: createClientThread
+ Description: Function to create a new pthread instance for the newly connected client
+ */
 void createClientThread(uint32_t clientSocket, uint16_t clientID)
 {
     /*    u64PassedArgument
@@ -109,6 +95,10 @@ void createClientThread(uint32_t clientSocket, uint16_t clientID)
     pthread_attr_init(&threadAttributes);
     pthread_attr_setstacksize(&threadAttributes, THREAD_STACKSIZE);
 
+    /*
+     This was implemented as a workaround to pthread limitation of one argument, further research could be done to add extra arguments to function.
+     */
+    /* Concatenate both u32 variables into a u64 to pass as one parameter to clientThread */
     u64PassedArgument = (uint64_t) clientID;
     u64PassedArgument <<= 32;
     u64PassedArgument &= 0x0000FFFF00000000;
@@ -120,8 +110,14 @@ void createClientThread(uint32_t clientSocket, uint16_t clientID)
     {
         fprintf(stderr, "[E] Could not Create Client Thread, Error Code: %d\n", threadCreationStatus);
     }
+    
+    return;
 }
 
+/*
+ Function: createTimerThread
+ Description: Function to start a separate thread to start/stop counting the 15 sec interval (Betting Instance)
+ */
 void createTimerThread(void)
 {
     int32_t threadCreationStatus;
@@ -138,6 +134,11 @@ void createTimerThread(void)
     }
 }
 
+/*
+ Function: handleBetClient
+ Description: thread Function. When the thread is started, this function will be called.
+ Handles the communication between the server and one client
+ */
 void *handleBetClient(void *data)
 {
     mBetServerMessageHeader messageHeader;
@@ -247,6 +248,10 @@ void *handleBetClient(void *data)
     return NULL;
 }
 
+/*
+ Function: startBettingRound
+ Description: Starts counting the 15 sec interval for the betting round. when all clients are served, resets the data to make it possible to start a new betting round on a new client connection
+ */
 void *startBettingRound(void *data)
 {
     /* Wait for 15 seconds */
@@ -269,6 +274,10 @@ void *startBettingRound(void *data)
     return NULL;
 }
 
+/*
+ Function: resetBettingRound
+ Description: Reset the variables to make it possible to start a new betting round on next client connection
+ */
 void resetBettingRound(void)
 {
     //TODO: Check how/when to call this function
@@ -277,6 +286,10 @@ void resetBettingRound(void)
     bTimerStarted = false;
 }
 
+/*
+ Function: runServer
+ Description: Betting Server Initialization and running. This function runs in the main thread and never exits
+ */
 bool runServer(uint16_t serverPort)
 {
     struct sockaddr_in clientSockAddr;
@@ -315,13 +328,7 @@ bool runServer(uint16_t serverPort)
                 bTimerStarted = true;
             }
 
-            clientID = generateClientID(clientSocket, clientSockLength);
-            //TODO: Move inside DB
-            while (clientID == DB_DUPLICATE)
-            {
-                fprintf(stderr,"[E] Duplicate Client ID, retrying\n");
-                clientID = generateClientID(clientSocket, clientSockLength);
-            }
+            clientID = DB_AppendClient(clientSocket, clientSockLength);
 
             if(clientID != DB_FULL)
             {

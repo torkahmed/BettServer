@@ -22,7 +22,7 @@ typedef enum
 /*
  * APIs
  */
-PUBLIC tenuDBErrorCode DB_AppendClientID(uint16_t clientID);
+PUBLIC int32_t DB_AppendClient(int32_t clientSocket, int32_t clientSockLength);
 PUBLIC bool DB_AddBettingNumber(uint16_t clientID, uint32_t bettingNumber);
 PUBLIC void DB_SelectWinningNumber(void);
 PUBLIC uint32_t DB_GetWinner(void);

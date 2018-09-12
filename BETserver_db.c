@@ -32,16 +32,13 @@ LOCAL uint32_t u32WinningNumber = 0;
 /*
  * PRIVATE FUNCTION DECLARATION
  */
-
+LOCAL tenuDBErrorCode appendIdToList(uint16_t clientID);
 
 /*
  * PRIVATE FUNCTION IMPLEMENTATION
  */
 
-/*
- * PUBLIC FUNCTIONS
- */
-PUBLIC tenuDBErrorCode DB_AppendClientID(uint16_t clientID)
+LOCAL tenuDBErrorCode appendIdToList(uint16_t clientID)
 {
     int i;
     /* 1. Check that ID List isn't full */
@@ -49,7 +46,7 @@ PUBLIC tenuDBErrorCode DB_AppendClientID(uint16_t clientID)
     {
         return DB_FULL;
     }
-
+    
     /* 2. Check that ID is not duplicated */
     for(i = 0; i < numConnectedClients; ++i)
     {
@@ -58,14 +55,48 @@ PUBLIC tenuDBErrorCode DB_AppendClientID(uint16_t clientID)
             return DB_DUPLICATE;
         }
     }
-
+    
     /* 3. Add Client to List */
     clientIDList[numConnectedClients] = clientID;
     numConnectedClients++;
     fprintf(stderr, "[I] Number of Connected Clients: %d, Remaining: %d\n", numConnectedClients, (BETSERVER_NUM_CLIENTS - numConnectedClients));
-
+    
     return DB_OK;
+    
+}
 
+/*
+ * PUBLIC FUNCTIONS
+ */
+
+PUBLIC int32_t DB_AppendClient(int32_t clientSocket, int32_t clientSockLength)
+{
+    //TODO: Move to DB Component
+    uint16_t u16ClientID;
+    tenuDBErrorCode tDBStatus;
+    
+    do
+    {
+        u16ClientID = rand() % (BETSERVER_NUM_CLIENTS - 1);
+        tDBStatus = appendIdToList(u16ClientID);
+        
+        switch (tDBStatus) {
+            case DB_OK:
+                fprintf(stderr, "[I] Client registered to Server!\n");
+                break;
+            case DB_DUPLICATE:
+                fprintf(stderr, "[E] Client ID Duplicated, try again!\n");
+                u16ClientID = DB_DUPLICATE;
+                break;
+            case DB_FULL:
+                fprintf(stderr, "[E] Server DB Full!\n");
+                u16ClientID = DB_FULL;
+            default:
+                break;
+        }
+    } while (tDBStatus == DB_DUPLICATE);
+    
+    return u16ClientID;
 }
 
 PUBLIC bool DB_AddBettingNumber(uint16_t clientID, uint32_t bettingNumber)
