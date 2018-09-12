@@ -56,7 +56,8 @@ void handleInterruptSignal(int32_t signalNumber);
 void createClientThread(uint32_t clientSocket, uint16_t clientID);
 void createTimerThread(void);
 void *handleBetClient(void *data);
-void *startBettingInstance(void *data);
+void *startBettingRound(void *data);
+void resetBettingRound(void);
 bool runServer(uint16_t serverPort);
 
 /*
@@ -129,7 +130,7 @@ void createTimerThread(void)
     pthread_attr_init(&threadAttributes);
     pthread_attr_setstacksize(&threadAttributes, THREAD_STACKSIZE);
 
-    threadCreationStatus = pthread_create(&timerThread, &threadAttributes, startBettingInstance, (void *) NULL);
+    threadCreationStatus = pthread_create(&timerThread, &threadAttributes, startBettingRound, (void *) NULL);
 
     if (0 != threadCreationStatus)
     {
@@ -238,15 +239,33 @@ void *handleBetClient(void *data)
             }
         }
 
+        if(!DB_ClientIsFinished(clientID))
+        {
+            fprintf(stderr, "[E] Could not find Client\n");
+        }
+
     return NULL;
 }
 
-void *startBettingInstance(void *data)
+void *startBettingRound(void *data)
 {
     /* Wait for 15 seconds */
     fprintf(stdout, "[I] Betting Instance Started \n");
+//    TODO: VERBOSE
+//    for(int i=0; i<15; i++)
+//    {
+//        sleep(1);
+//        fprintf(stderr, "Wait Counter: %d\n", i);
+//    }
     sleep(15U);
     bTimeElapsed = true;
+
+    while(!DB_AllClientsServed())
+    {
+        /* Wait here until All Clients are served */
+    }
+    resetBettingRound();
+    fprintf(stderr, "[I] Betting Instance Ended!\n");
     return NULL;
 }
 

@@ -26,4 +26,6 @@ PUBLIC tenuDBErrorCode DB_AppendClientID(uint16_t clientID);
 PUBLIC bool DB_AddBettingNumber(uint16_t clientID, uint32_t bettingNumber);
 PUBLIC void DB_SelectWinningNumber(void);
 PUBLIC uint32_t DB_GetWinner(void);
+PUBLIC bool DB_ClientIsFinished(uint16_t clientID);
+PUBLIC bool DB_AllClientsServed(void);
 PUBLIC void DB_ClearIDList(void);

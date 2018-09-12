@@ -24,6 +24,7 @@
  */
 LOCAL uint16_t clientIDList[BETSERVER_NUM_CLIENTS];
 LOCAL uint32_t clientBettingNumbers[BETSERVER_NUM_CLIENTS];
+LOCAL bool isClientFinished[BETSERVER_NUM_CLIENTS];
 LOCAL uint32_t numConnectedClients;
 LOCAL bool winnerDetermined = false;
 LOCAL uint32_t u32WinningNumber = 0;
@@ -100,6 +101,35 @@ PUBLIC uint32_t DB_GetWinner(void)
     return u32WinningNumber;
 }
 
+PUBLIC bool DB_ClientIsFinished(uint16_t clientID)
+{
+    uint32_t i;
+    for (i = 0; i<numConnectedClients; ++i)
+    {
+        if(clientIDList[i] == clientID)
+        {
+            isClientFinished[i] = true;
+            return true;
+        }
+    }
+    fprintf(stderr, "[E] Could not find Client ID\n");
+    return false;
+
+}
+
+PUBLIC bool DB_AllClientsServed(void)
+{
+    uint8_t i;
+    for(i = 0; i < numConnectedClients; ++i)
+    {
+        if(!isClientFinished[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 PUBLIC void DB_ClearIDList(void)
 {
     //TODO: Check how to call this from all threads, RESTART INSTANCE
@@ -109,6 +139,7 @@ PUBLIC void DB_ClearIDList(void)
     {
         clientIDList[i] = 0;
         clientBettingNumbers[i] = 0;
+        isClientFinished[i] = false;
         winnerDetermined = false;
         u32WinningNumber = 0;
     }
