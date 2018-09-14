@@ -115,6 +115,14 @@ PUBLIC bool DB_AddBettingNumber(uint16_t clientID, uint32_t bettingNumber)
 
 PUBLIC void DB_SelectWinningNumber(void)
 {
+    /*
+     * This Method takes a random betting number from the array of client betting numbers
+     * This will not be a 100% fair chance if two clients use the same betting number
+     * e.g {0xAA, 0xBB, 0xAA, 0xCC}
+     * The chances to pick 0xAA is double the chances to pick 0xBB or 0xCC
+     * Possible Improvement: Save the betting number in a different array that would take one entry per number
+     * and randomize a winner from that array
+     */
     if(!winnerDetermined)
     {
         /* Generate a random number between 0 and numConnected Clients */
