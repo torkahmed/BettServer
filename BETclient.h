@@ -12,7 +12,7 @@
 /*
  * MACROS
  */
-
+#define USER_INPUT_BETNUM 1
 
 /*
  * APIs

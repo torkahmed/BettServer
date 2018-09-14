@@ -15,6 +15,7 @@
 #include <sys/socket.h>
 
 #include "SOCKETwrapper.h"
+#include "BETclient.h"
 
 /*
  * MACROS
@@ -28,11 +29,45 @@
 /*
  * PRIVATE FUNCTION DECLARATION
  */
+#if (USER_INPUT_BETNUM == 1)
+uint32_t getBettingNumberFromUser(uint32_t min, uint32_t max);
+#else
 uint32_t getRandomNumber(uint32_t min, uint32_t max, uint16_t clientID);
+#endif
 bool clientConnectToServer(char *serverIP, int16_t serverPort);
+
 
 /*
  * PRIVATE FUNCTION IMPLEMENTATION
+ */
+
+#if (USER_INPUT_BETNUM == 1)
+
+/*
+ Function: getBettingNumberFromUser
+ Description: Take Betting Number from User Input
+ */
+uint32_t getBettingNumberFromUser(uint32_t min, uint32_t max)
+{
+    uint32_t u32UserInput = 0;
+    do
+    {
+        fprintf(stdout, "[U] Please Input a Number between %x and %x ==> ", min, max);
+        fflush(stdout);
+        fscanf(stdin, "%x", &u32UserInput);
+        fprintf(stdout, "\n");
+        fflush(stdout);
+        if ((u32UserInput > max) || (u32UserInput < min))
+        {
+            fprintf(stdout, "[E] Wrong Entry, Please try again\n");
+        }
+    } while ((u32UserInput > max) || (u32UserInput < min));
+}
+
+#else
+/*
+ Function: getRandomNumber
+ Description: Randomize a number between min and max using the last byte in client ID
  */
 uint32_t getRandomNumber(uint32_t min, uint32_t max, uint16_t clientID)
 {
@@ -42,6 +77,8 @@ uint32_t getRandomNumber(uint32_t min, uint32_t max, uint16_t clientID)
     fprintf(stderr, "[D] Random Factor: %f\n", factor);
     return (min + ((max-min) * factor));
 }
+#endif
+
 
 bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
 {
@@ -88,7 +125,12 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
     /* Step 5: Send Bet Message */
     messageHeader.u8Length = sizeof(messageHeader) + sizeof(messageBet);
     messageHeader.u8Type = BETSERVER_BET;
+#if (USER_INPUT_BETNUM == 1)
+    messageBet.u32BettingNumber = getBettingNumberFromUser(messageAccept.u32BetLowerBounds, messageAccept.u32BetUpperBounds);
+#else
     messageBet.u32BettingNumber = getRandomNumber(messageAccept.u32BetLowerBounds, messageAccept.u32BetUpperBounds, messageHeader.u16ClientID);
+#endif
+
     fprintf(stderr, "[D] Betting Number: %x\n", messageBet.u32BettingNumber);
     nrBytesSent = send(socketDescriptor, &messageHeader, sizeof(messageHeader), 0);
     if (nrBytesSent == sizeof(messageHeader))

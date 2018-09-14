@@ -1,16 +1,9 @@
-/*
- TODO List:
- 
- 1. Proper Protection
- 2. Protocol Violation Detection
- 
- */
-
 /* Filename: BETserver.c
  * Author: Ahmed Tourk
  * Date: 04.09.2018
  * Description: Server Implementation for BetServer
  */
+
 
 /*
  * INCLUDES
@@ -28,12 +21,14 @@
 #include "BETserver_db.h"
 #include "BETserver.h"
 
+
 /*
  * MACROS
  */
 
 /* 64KB of Stack Size */
 #define THREAD_STACKSIZE      (64 * 1024)
+
 
 /*
  * GLOBAL VARIABLES
@@ -47,8 +42,7 @@ LOCAL bool isServerRunning = true;
 LOCAL bool bTimerStarted = false;
 /* Flag to indicate whether the betting run should end. Written by Timer Thread, Read by Client Threads */
 LOCAL bool bTimeElapsed = false;
-/* Mutex to protect multiple clients accessing DB API simultaneously to calculate winner. i.e first one calculates winner, the rest get the result */
-LOCAL pthread_mutex_t tProtectionMutex;
+
 
 /*
  * PRIVATE FUNCTION DECLARATION
@@ -61,6 +55,7 @@ void *handleBetClient(void *data);
 void *startBettingRound(void *data);
 void resetBettingRound(void);
 bool runServer(uint16_t serverPort);
+
 
 /*
  * PRIVATE FUNCTION IMPLEMENTATION
@@ -369,7 +364,6 @@ void *startBettingRound(void *data)
  */
 void resetBettingRound(void)
 {
-    //TODO: Check how/when to call this function
     DB_ClearIDList();
     bTimeElapsed = false;
     bTimerStarted = false;
@@ -391,6 +385,7 @@ bool runServer(uint16_t serverPort)
     signal(SIGTERM, handleInterruptSignal);
     signal(SIGSEGV, handleInterruptSignal);
     
+    /* Create Bet Server on selected Port */
     s32ServerSocket = SW_CreateServer(serverPort, BETSERVER_NUM_CLIENTS);
     
     if (s32ServerSocket == INVALID_SOCKET)
@@ -429,12 +424,12 @@ bool runServer(uint16_t serverPort)
     return true;
 }
 
+
 /*
- * PUBLIC FUNCTIONS
+ * MAIN FUNCTION
  */
 int main(int argc, char const *argv[])
 {
-    pthread_mutex_init(&tProtectionMutex, NULL);
     runServer(BETSERVER_PORT);
     return 0;
 }

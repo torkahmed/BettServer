@@ -71,7 +71,6 @@ LOCAL tenuDBErrorCode appendIdToList(uint16_t clientID)
 
 PUBLIC int32_t DB_AppendClient(int32_t clientSocket, int32_t clientSockLength)
 {
-    //TODO: Move to DB Component
     uint16_t u16ClientID;
     tenuDBErrorCode tDBStatus;
     
@@ -163,7 +162,6 @@ PUBLIC bool DB_AllClientsServed(void)
 
 PUBLIC void DB_ClearIDList(void)
 {
-    //TODO: Check how to call this from all threads, RESTART INSTANCE
     uint32_t i;
 
     for(i = 0; i < numConnectedClients; ++i)
