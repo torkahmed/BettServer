@@ -1,9 +1,8 @@
 /*
  TODO List:
  
- 1. Verbose Option to Enable/Disable extended [I] Traces
- 2. Proper Protection
- 3. Protocol Violation Detection
+ 1. Proper Protection
+ 2. Protocol Violation Detection
  
  */
 
@@ -32,8 +31,6 @@
 /*
  * MACROS
  */
-//TODO: Check why stdout isnt flushed directly
-//TODO: Research the correct stack size to set for a client thread
 
 /* 64KB of Stack Size */
 #define THREAD_STACKSIZE      (64 * 1024)
@@ -206,28 +203,20 @@ void *handleBetClient(void *data)
         /* Wait in thread till timer is elapsed */
     }
 
-//    fscanf(stdin, "Timer Elapsed? %s\n", testString);
-
+    /* Prepare Result Message */
     messageHeader.u8Length = sizeof(messageHeader) + sizeof(messageResult);
     messageHeader.u8Type = BETSERVER_RESULT;
-    
-    // Potential Multi-threading Issue here. - Check pthread_mutex_lock
-    // TODO: Multithreading issue fixed by mutex. Test well.
-    if(0 == pthread_mutex_lock(&tProtectionMutex))
-    {
-        DB_SelectWinningNumber();
-        pthread_mutex_unlock(&tProtectionMutex);
-    }
-    
     messageResult.u32WinningNumber = DB_GetWinner();
 
     if(messageResult.u32WinningNumber == messageBet.u32BettingNumber)
     {
         messageResult.u8Status = true;
+        fprintf(stderr, "[I] Client ID: %d Won!\n", clientID);
     }
     else
     {
         messageResult.u8Status = false;
+        fprintf(stderr, "[I] Client ID: %d Lost!\n", clientID);
     }
 
     nrBytesSent = send(clientSocket, &messageHeader, sizeof(messageHeader), 0);
@@ -256,19 +245,21 @@ void *startBettingRound(void *data)
 {
     /* Wait for 15 seconds */
     fprintf(stdout, "[I] Betting Instance Started \n");
-//    TODO: VERBOSE
-//    for(int i=0; i<15; i++)
-//    {
-//        sleep(1);
-//        fprintf(stderr, "Wait Counter: %d\n", i);
-//    }
     sleep(15U);
+
+    /* Select the Winner */
+    DB_SelectWinningNumber();
+    fprintf(stderr, "[I] The Winning Number is %x!\n", DB_GetWinner());
+
+    /* Allow Client threads to send results to clients */
     bTimeElapsed = true;
 
     while(!DB_AllClientsServed())
     {
         /* Wait here until All Clients are served */
     }
+
+    /* Cleanup the old winning round and prepare for the next one */
     resetBettingRound();
     fprintf(stderr, "[I] Betting Instance Ended!\n");
     return NULL;
