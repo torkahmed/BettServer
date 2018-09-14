@@ -75,7 +75,7 @@ PUBLIC int32_t SW_CreateServer(int32_t serverPort, int32_t maxPendingConnections
 	return serverSocket;
 }
 
-PUBLIC void SW_ShutdownServer(int32_t socketDescriptor)
+PUBLIC void SW_TearConnection(int32_t socketDescriptor)
 {
     fprintf(stdout, "[I] Closing Socket %d\n", socketDescriptor);
     fflush(stdout);

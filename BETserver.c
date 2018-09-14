@@ -54,6 +54,7 @@ LOCAL pthread_mutex_t tProtectionMutex;
  * PRIVATE FUNCTION DECLARATION
  */
 void handleInterruptSignal(int32_t signalNumber);
+bool checkMessageIntegrity(mBetServerMessageHeader tstrMessageHeader);
 void createClientThread(uint32_t clientSocket, uint16_t clientID);
 void createTimerThread(void);
 void *handleBetClient(void *data);
@@ -72,7 +73,56 @@ bool runServer(uint16_t serverPort);
 void handleInterruptSignal(int32_t signalNumber)
 {
     isServerRunning = false;
-    SW_ShutdownServer(s32ServerSocket);
+    SW_TearConnection(s32ServerSocket);
+}
+
+/*
+ Function: checkMessageIntegrity
+ Description: Check that the message does not violate the protocol specs
+ */
+bool checkMessageIntegrity(mBetServerMessageHeader tstrMessageHeader)
+{
+    bool result = true;
+    if(tstrMessageHeader.u8Version != PROTOCOL_VERSION)
+    {
+        fprintf(stderr, "[E] Wrong Protocol Version\n");
+        result = false;
+    }
+    switch(tstrMessageHeader.u8Type)
+    {
+    case (BETSERVER_OPEN):
+            if(tstrMessageHeader.u8Length != sizeof(mBetServerMessageHeader))
+            {
+                fprintf(stderr, "[E] Wrong Open Message Length\n");
+                result = false;
+            }
+            break;
+    case (BETSERVER_ACCEPT):
+            if(tstrMessageHeader.u8Length != (sizeof(mBetServerMessageHeader) + sizeof(mBetServerMessageAccept)))
+            {
+                fprintf(stderr, "[E] Wrong Accept Message Length\n");
+                result = false;
+            }
+            break;
+    case (BETSERVER_BET):
+            if(tstrMessageHeader.u8Length != (sizeof(mBetServerMessageHeader) + sizeof(mBetServerMessageBet)))
+            {
+                fprintf(stderr, "[E] Wrong Bet Message Length\n");
+                result = false;
+            }
+            break;
+    case (BETSERVER_RESULT):
+            if(tstrMessageHeader.u8Length != (sizeof(mBetServerMessageHeader) + sizeof(mBetServerMessageResult)))
+            {
+                fprintf(stderr, "[E] Wrong Result Message Length\n");
+                result = false;
+            }
+            break;
+    default:
+            result = false;
+            break;
+    }
+    return result;
 }
 
 /*
@@ -134,7 +184,7 @@ void createTimerThread(void)
 /*
  Function: handleBetClient
  Description: thread Function. When the thread is started, this function will be called.
- Handles the communication between the server and one client
+ Handles the communication between the server and one client per thread
  */
 void *handleBetClient(void *data)
 {
@@ -151,59 +201,96 @@ void *handleBetClient(void *data)
     fprintf(stdout, "[I] Thread Started for Client on Socket %d with ID %d\n", clientSocket, clientID);
     fflush(stdout);
 
-    /* BETSERVER_OPEN */
+    /*                          BETSERVER_OPEN                                */
+    /* Receive Header */
     nrBytesRcvd = recv(clientSocket, &messageHeader, sizeof(messageHeader), 0);
-
-    if(messageHeader.u8Version != PROTOCOL_VERSION)
+    if(nrBytesRcvd != sizeof(messageHeader))
     {
-        fprintf(stderr, "[E] Wrong Protocol Version, Disconnecting...\n");
+        fprintf(stderr, "[E] Incorrect Number of Bytes Received\n");
+        SW_TearConnection(clientSocket);
         return NULL;
     }
 
-    if(messageHeader.u8Type != BETSERVER_OPEN)
+    /* Validate Message */
+    if((messageHeader.u8Type != BETSERVER_OPEN) || !checkMessageIntegrity(messageHeader) )
     {
-        fprintf(stderr, "[E] Wrong Message Type\n");
+        fprintf(stderr, "[E] Protocol Violation by Client... Disconnecting\n");
+        SW_TearConnection(clientSocket);
         return NULL;
     }
 
-//    fprintf(stderr, "[I] Received Open Message from Client with ID %d\n", clientID);
+    /*                         BETSERVER_ACCEPT                               */
 
-    /* BETSERVER_ACCEPT */
+    /* Prepare Message */
     messageHeader.u8Type = BETSERVER_ACCEPT;
     messageHeader.u8Length = sizeof(mBetServerMessageHeader) + sizeof(mBetServerMessageAccept);
     messageHeader.u16ClientID = clientID;
+    messageAccept.u32BetLowerBounds = BETSERVER_NUM_MIN;
+    messageAccept.u32BetUpperBounds = BETSERVER_NUM_MAX;
 
+    /* Send Header */
     nrBytesSent = send(clientSocket, &messageHeader, sizeof(messageHeader), 0);
-    if(nrBytesSent == sizeof(messageHeader))
+    if(!(nrBytesSent == sizeof(messageHeader)))
     {
-        messageAccept.u32BetLowerBounds = BETSERVER_NUM_MIN;
-        messageAccept.u32BetUpperBounds = BETSERVER_NUM_MAX;
-
-        nrBytesSent = send(clientSocket, &messageAccept, sizeof(messageAccept), 0);
-        if(nrBytesSent == sizeof(messageAccept))
-        {
-//            fprintf(stderr, "[I] Accept Sent Successfully\n");
-        }
+        fprintf(stderr, "[E] Incorrect Number of Bytes Sent\n");
+        SW_TearConnection(clientSocket);
+        return NULL;
     }
 
-    recv(clientSocket, &messageHeader, sizeof(messageHeader), 0);
-    recv(clientSocket, &messageBet, sizeof(messageBet), 0);
-//    fprintf(stderr, "[I] Betting Number for Client ID %d is %x\n", messageHeader.u16ClientID, messageBet.u32BettingNumber);
-    if(DB_AddBettingNumber(messageHeader.u16ClientID, messageBet.u32BettingNumber))
+    /* Send Payload */
+    nrBytesSent = send(clientSocket, &messageAccept, sizeof(messageAccept), 0);
+    if(nrBytesSent != sizeof(messageAccept))
     {
-//        fprintf(stderr, "[I] Betting Number Registered to Client ID Successfully!\n");
+        fprintf(stderr, "[E] Incorrect Number of Bytes Sent\n");
+        SW_TearConnection(clientSocket);
+        return NULL;
     }
-    else
+
+    /*                         BETSERVER_BET                                  */
+
+    /* Receive Header */
+    nrBytesRcvd = recv(clientSocket, &messageHeader, sizeof(messageHeader), 0);
+    if(nrBytesRcvd != sizeof(messageHeader))
+    {
+        fprintf(stderr, "[E] Incorrect Number of Bytes Received\n");
+        SW_TearConnection(clientSocket);
+        return NULL;
+    }
+
+    /* Receive Payload */
+    nrBytesRcvd = recv(clientSocket, &messageBet, sizeof(messageBet), 0);
+    if(nrBytesRcvd != sizeof(messageBet))
+    {
+        fprintf(stderr, "[E] Incorrect Number of Bytes Received\n");
+        SW_TearConnection(clientSocket);
+        return NULL;
+    }
+
+    /* Validate Message */
+    if((messageHeader.u8Type != BETSERVER_BET) || !checkMessageIntegrity(messageHeader) )
+    {
+        fprintf(stderr, "[E] Protocol Violation by Client... Disconnecting\n");
+        SW_TearConnection(clientSocket);
+        return NULL;
+    }
+
+    /* Update Database with Betting Number for this Client ID */
+    if(!DB_AddBettingNumber(messageHeader.u16ClientID, messageBet.u32BettingNumber))
     {
         fprintf(stderr, "[E] Could not find Client ID in Database!\n");
+        SW_TearConnection(clientSocket);
+        return NULL;
     }
 
+    /* Wait in thread till timer is elapsed */
     while(!bTimeElapsed)
     {
-        /* Wait in thread till timer is elapsed */
+        /* Do Nothing */
     }
 
-    /* Prepare Result Message */
+    /*                       BETSERVER_RESULT                                 */
+
+    /* Prepare Message */
     messageHeader.u8Length = sizeof(messageHeader) + sizeof(messageResult);
     messageHeader.u8Type = BETSERVER_RESULT;
     messageResult.u32WinningNumber = DB_GetWinner();
@@ -219,21 +306,32 @@ void *handleBetClient(void *data)
         fprintf(stderr, "[I] Client ID: %d Lost!\n", clientID);
     }
 
+    /* Send Header */
     nrBytesSent = send(clientSocket, &messageHeader, sizeof(messageHeader), 0);
-        if(nrBytesSent == sizeof(messageHeader))
-        {
-            nrBytesSent = send(clientSocket, &messageResult, sizeof(messageResult), 0);
-            if(nrBytesSent == sizeof(messageResult))
-            {
-//                fprintf(stderr, "[I] Result Sent Successfully\n");
-            }
-        }
+    if(!(nrBytesSent == sizeof(messageHeader)))
+    {
+        fprintf(stderr, "[E] Incorrect Number of Bytes Sent\n");
+        SW_TearConnection(clientSocket);
+        return NULL;
+    }
 
-        if(!DB_ClientIsFinished(clientID))
-        {
-            fprintf(stderr, "[E] Could not find Client\n");
-        }
+    /* Send Payload */
+    nrBytesSent = send(clientSocket, &messageResult, sizeof(messageResult), 0);
+    if(!(nrBytesSent == sizeof(messageResult)))
+    {
+        fprintf(stderr, "[E] Incorrect Number of Bytes Sent\n");
+        SW_TearConnection(clientSocket);
+        return NULL;
+    }
 
+    /* Tell DB Component that this client is served */
+    if(!DB_ClientIsFinished(clientID))
+    {
+        fprintf(stderr, "[E] Could not find Client in Database\n");
+    }
+
+    /* After Serving the client, tear down the connection */
+    SW_TearConnection(clientSocket);
     return NULL;
 }
 
