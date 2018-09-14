@@ -94,14 +94,14 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
     /* Step 1: Validate IP Address Entry */
     if (inet_pton(AF_INET, serverHumanRIP, &serverIP) != 1)
     {
-        fprintf(stderr, "[E] Provided Server IPV4 Address is Invalid");
+        fprintf(stderr, "[E] Provided Server IPV4 Address is Invalid\n");
         return false;
     }
 
     /* Step 2: Connect to Server */
     if (!(SW_ConnectToServer(&socketDescriptor, serverIP, serverPort)))
     {
-        fprintf(stderr, "[E] Connection to Server Failed");
+        fprintf(stderr, "[E] Connection to Server Failed\n");
         return false;
     }
 
