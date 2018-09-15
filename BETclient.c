@@ -62,6 +62,8 @@ uint32_t getBettingNumberFromUser(uint32_t min, uint32_t max)
             fprintf(stdout, "[E] Wrong Entry, Please try again\n");
         }
     } while ((u32UserInput > max) || (u32UserInput < min));
+    
+    return u32UserInput;
 }
 
 #else

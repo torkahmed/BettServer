@@ -1,3 +1,10 @@
+/*
+ KNOWN ISSUES FROM WIRESHARK TRACES:
+ 
+ 1. Endianness of messages (fix by htonl/htons on sending and ntohl/ntohs on receiving)
+ 2. 0xEF (0xD6 on Linux) extra byte sent on sending Client ID TODO: Check why this is happening Header should be 5 bytes not 6.
+ 
+ */
 /* Filename: BETserver.c
  * Author: Ahmed Tourk
  * Date: 04.09.2018
