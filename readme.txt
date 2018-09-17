@@ -38,3 +38,13 @@ C. KNOWN ISSUES & POSSIBLE FIXES:
 
 - pthread function pointer takes only 1 argument
 	> Workaround Implemented: Since we needed to pass both the client ID and the client socket to the client thread function, a bitwise operation was implemented to concatenate both u32 variables into one u64 and then decode it inside the client thread func.
+
+
+
+D. TRACE ABBREVIATIONS: 
+-----------------------
+
+[E] Error
+[I] Informational Trace
+[D] Debug Trace
+[U] User Interaction Required
