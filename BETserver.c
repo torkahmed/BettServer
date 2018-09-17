@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <signal.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -200,7 +201,7 @@ void *handleBetClient(void *data)
     uint32_t clientSocket = (uint32_t) (0x00000000FFFFFFFF & (uint64_t) data);
     uint32_t clientID = (uint32_t)    ((0xFFFFFFFF00000000 & (uint64_t) data) >> 32);
 
-    fprintf(stdout, "[I] Thread Started for Client on Socket %d with ID %d\n", clientSocket, clientID);
+    fprintf(stdout, "[I] Thread Started for Client on Socket %d with ID %d\n", clientSocket, ntohs(clientID));
     fflush(stdout);
 
     /*                          BETSERVER_OPEN                                */
@@ -300,12 +301,12 @@ void *handleBetClient(void *data)
     if(messageResult.u32WinningNumber == messageBet.u32BettingNumber)
     {
         messageResult.u8Status = true;
-        fprintf(stderr, "[I] Client ID: %d Won!\n", clientID);
+        fprintf(stderr, "[I] Client ID: %d Won!\n", ntohs(clientID));
     }
     else
     {
         messageResult.u8Status = false;
-        fprintf(stderr, "[I] Client ID: %d Lost!\n", clientID);
+        fprintf(stderr, "[I] Client ID: %d Lost!\n", ntohs(clientID));
     }
 
     /* Send Header */
@@ -349,7 +350,7 @@ void *startBettingRound(void *data)
 
     /* Select the Winner */
     DB_SelectWinningNumber();
-    fprintf(stderr, "[I] The Winning Number is %x!\n", DB_GetWinner());
+    fprintf(stderr, "[I] The Winning Number is %x!\n", ntohl(DB_GetWinner()));
 
     /* Allow Client threads to send results to clients */
     bTimeElapsed = true;

@@ -121,6 +121,8 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
     /* Step 4: Receive Accept Message */
     recv(socketDescriptor, &messageHeader, sizeof(messageHeader), 0);
     recv(socketDescriptor, &messageAccept, sizeof(messageAccept), 0);
+    messageAccept.u32BetLowerBounds = ntohl(messageAccept.u32BetLowerBounds);
+    messageAccept.u32BetUpperBounds = ntohl(messageAccept.u32BetUpperBounds);
     fprintf(stderr, "[I] MY ID: %d\n", messageHeader.u16ClientID);
     fprintf(stderr, "[I] LB: %x, UB: %x\n", messageAccept.u32BetLowerBounds, messageAccept.u32BetUpperBounds);
 
@@ -128,12 +130,12 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
     messageHeader.u8Length = sizeof(messageHeader) + sizeof(messageBet);
     messageHeader.u8Type = BETSERVER_BET;
 #if (USER_INPUT_BETNUM == 1)
-    messageBet.u32BettingNumber = getBettingNumberFromUser(messageAccept.u32BetLowerBounds, messageAccept.u32BetUpperBounds);
+    messageBet.u32BettingNumber = htonl(getBettingNumberFromUser(messageAccept.u32BetLowerBounds, messageAccept.u32BetUpperBounds));
 #else
-    messageBet.u32BettingNumber = getRandomNumber(messageAccept.u32BetLowerBounds, messageAccept.u32BetUpperBounds, messageHeader.u16ClientID);
+    messageBet.u32BettingNumber = htonl(getRandomNumber(messageAccept.u32BetLowerBounds, messageAccept.u32BetUpperBounds, messageHeader.u16ClientID));
 #endif
 
-    fprintf(stderr, "[D] Betting Number: %x\n", messageBet.u32BettingNumber);
+    fprintf(stderr, "[D] Betting Number: %x\n", ntohl(messageBet.u32BettingNumber));
     nrBytesSent = send(socketDescriptor, &messageHeader, sizeof(messageHeader), 0);
     if (nrBytesSent == sizeof(messageHeader))
     {

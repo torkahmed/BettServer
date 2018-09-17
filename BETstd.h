@@ -22,8 +22,8 @@
 #define BETSERVER_PORT          (2222)
 
 #define BETSERVER_NUM_CLIENTS   (64500U)
-#define BETSERVER_NUM_MIN       (0xE0FFFF00)
-#define BETSERVER_NUM_MAX       (0xE0FFFFAA)
+#define BETSERVER_NUM_MIN       (htonl(0xE0FFFF00))
+#define BETSERVER_NUM_MAX       (htonl(0xE0FFFFAA))
 
 
 #define PROTOCOL_VERSION          (0x1)

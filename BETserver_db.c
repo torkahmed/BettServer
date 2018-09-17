@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
 
 #include "BETserver_db.h"
 
@@ -76,7 +77,7 @@ PUBLIC int32_t DB_AppendClient(int32_t clientSocket, int32_t clientSockLength)
     
     do
     {
-        u16ClientID = rand() % (BETSERVER_NUM_CLIENTS - 1);
+        u16ClientID = htons(rand() % (BETSERVER_NUM_CLIENTS - 1));
         tDBStatus = appendIdToList(u16ClientID);
         
         switch (tDBStatus) {
