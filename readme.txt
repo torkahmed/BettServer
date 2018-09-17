@@ -45,6 +45,9 @@ C. KNOWN ISSUES & PENDING TASKS:
 - Unfair Winner Selection
 	> The DB uses the client array to select a winner. This might be unfair when multiple clients select the same betting number, then this number will have a higher probability to win over other numbers.
 	> To fix this, a new array has to be implemented inside the DB, where a betting number is saved only once. And the winning number is randomly selected from that array.
+- Folder Structure
+	> A folder structure needs to be designed, to concatenate components inside: SOCKETwrapper, BETserver, BETclient, BETcommon folders
+	> Makefile has to be updated accordingly
 
 
 D. TRACE ABBREVIATIONS: 
