@@ -151,12 +151,15 @@ bool clientConnectToServer(const char *serverHumanRIP, int16_t serverPort)
 
     if(messageResult.u8Status)
     {
-        fprintf(stderr, "I WON!!!!\n");
+        fprintf(stderr, "********************\n");
+        fprintf(stderr, "****** WINNER ******\n");
+        fprintf(stderr, "********************\n");
     }
     else
     {
-        fprintf(stderr, "I LOSE! :( \n");
-    }
+        fprintf(stderr, "********************\n");
+        fprintf(stderr, "****** LOSER *******\n");
+        fprintf(stderr, "********************\n");    }
 
     
     return true;

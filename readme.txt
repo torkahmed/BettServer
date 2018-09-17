@@ -29,8 +29,8 @@ BETclient: Client Implementation
 	> Handles communication with server as per the requested protocol
 
 
-C. KNOWN ISSUES & POSSIBLE FIXES:
----------------
+C. KNOWN ISSUES & PENDING TASKS:
+--------------------------------
 
 - Message Header sends an extra byte.
 	> This could be due to the fact that the message buffer is a struct which can be interpreted differently by different compilers. 
@@ -39,6 +39,8 @@ C. KNOWN ISSUES & POSSIBLE FIXES:
 - pthread function pointer takes only 1 argument
 	> Workaround Implemented: Since we needed to pass both the client ID and the client socket to the client thread function, a bitwise operation was implemented to concatenate both u32 variables into one u64 and then decode it inside the client thread func.
 
+- Message Send/Recv Protection in BETclient
+	> As implemented in BETserver, the BETclient needs to check if it did not receive the complete data, then disconnect.
 
 
 D. TRACE ABBREVIATIONS: 
