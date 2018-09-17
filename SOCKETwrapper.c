@@ -106,7 +106,6 @@ PUBLIC bool SW_ConnectToServer(int32_t *socketDescriptor, uint32_t ip, uint16_t 
     {
         fprintf(stderr, "[E] Could not Connect to Server Socket, Closing Client Socket\n");
         close(clientSocket);
-        //TODO: Add Errno Traces
         return false;
     }
 

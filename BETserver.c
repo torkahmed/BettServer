@@ -1,10 +1,3 @@
-/*
- KNOWN ISSUES FROM WIRESHARK TRACES:
- 
- 1. Endianness of messages (fix by htonl/htons on sending and ntohl/ntohs on receiving)
- 2. 0xEF (0xD6 on Linux) extra byte sent on sending Client ID TODO: Check why this is happening Header should be 5 bytes not 6.
- 
- */
 /* Filename: BETserver.c
  * Author: Ahmed Tourk
  * Date: 04.09.2018
@@ -206,6 +199,7 @@ void *handleBetClient(void *data)
 
     /*                          BETSERVER_OPEN                                */
     /* Receive Header */
+    /* TODO: BUG Extra Byte being sent in Header Message */
     nrBytesRcvd = recv(clientSocket, &messageHeader, sizeof(messageHeader), 0);
     if(nrBytesRcvd != sizeof(messageHeader))
     {
@@ -372,7 +366,10 @@ void *startBettingRound(void *data)
  */
 void resetBettingRound(void)
 {
+    /* Clear Database of existing Clients */
     DB_ClearIDList();
+
+    /* Reset Instancing flags */
     bTimeElapsed = false;
     bTimerStarted = false;
 }
@@ -410,18 +407,24 @@ bool runServer(uint16_t serverPort)
          address.
          */
         clientSockLength = sizeof(clientSocket);
+
+        /* Blocking call, wait for clients to connect */
         clientSocket = accept(s32ServerSocket, (struct sockaddr *) &clientSockAddr, (socklen_t *) &clientSockLength);
         
         if (0 <= clientSocket)
         {
+            /* Check if a betting instance is already running, if not then start a new one */
             if(!bTimerStarted)
             {
                 createTimerThread();
                 bTimerStarted = true;
             }
 
+            /* Add the newly connected client to the database */
             clientID = DB_AppendClient(clientSocket, clientSockLength);
 
+            /* if the number of connected clients is still less than BETSERVER_NUM_CLIENTS,
+             *  then start communication with the new client */
             if(clientID != DB_FULL)
             {
                 createClientThread(clientSocket, clientID);

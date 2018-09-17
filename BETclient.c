@@ -34,7 +34,7 @@ uint32_t getBettingNumberFromUser(uint32_t min, uint32_t max);
 #else
 uint32_t getRandomNumber(uint32_t min, uint32_t max, uint16_t clientID);
 #endif
-bool clientConnectToServer(char *serverIP, int16_t serverPort);
+bool clientConnectToServer(const char *serverIP, int16_t serverPort);
 
 
 /*
@@ -82,9 +82,9 @@ uint32_t getRandomNumber(uint32_t min, uint32_t max, uint16_t clientID)
 #endif
 
 
-bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
+bool clientConnectToServer(const char *serverHumanRIP, int16_t serverPort)
 {
-    //TODO: Implement Protection on all send/recv
+    /* TODO: Implement Protection on all send/recv */
     uint32_t serverIP = 0;
     int32_t socketDescriptor;
     int8_t nrBytesSent = 0;
@@ -168,6 +168,16 @@ bool clientConnectToServer(char *serverHumanRIP, int16_t serverPort)
 
 int main(int argc, char const *argv[])
 {
-    clientConnectToServer("127.0.0.1", 2222);
+    if(argc < 2)
+    {
+        fprintf(stderr, "[U] Please Specify the IP address of the Server!\n");
+        return 0;
+    }
+    else
+    {
+        /* Communicate with Server on Specified IP Address, and Port 2222     */
+        clientConnectToServer(argv[1], BETSERVER_PORT);
+    }
+
     return 0;
 }
